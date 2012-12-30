@@ -76,22 +76,21 @@ RD.tweetTopPosts = function (topPosts) {
                         id:topPosts[i].id
                     }).toArray(function(err,res){
                         if ((typeof res !== null) || res.length === 0) { //tweet
-                              console.log("Tweeted");
-//                            t.post('statuses/update', {
-//                                status: tweet
-//                            },function(e,r){
-//                                if(!e) {
-//                                    collection.insert({
-//                                        id:topPosts[i].id
-//                                    }, function(e,r){
-//                                        // log error somewhere
-//                                        });
-//                                }
-//                            });
+                            t.post('statuses/update', {
+                                status: tweet
+                            },function(e,r){
+                                if(!e) {
+                                    collection.insert({
+                                        id:topPosts[i].id
+                                    }, function(e,r){
+                                        // log error somewhere
+                                        });
+                                }
+                            });
 			
 			
                         } else {
-                            console.log("Already tweeted");
+                            console.log("Already tweeted. Logged on " + new Date().toString());
                         }
 		
                     });
@@ -166,5 +165,4 @@ RD.fetch = function(channels) {
 setInterval(function(){
 dbclient.close();
 RD.fetch(RD.channels);    
-}, 10000);
-
+}, 1800000);
