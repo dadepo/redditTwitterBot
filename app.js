@@ -1,17 +1,21 @@
 // get needed node modules
+
+// app_settings is not a public module. Its a simple file that holds the necessary credentials for twitter and db
+var APP_SETTINGS = require('app_settings');
+
 var request = require('request');
 var http = require('http');
 var twit = require('twit');
 var mongo = require('mongodb');
 
 // set constants
-var API_KEY = 'xxx';
+var API_KEY = APP_SETTINGS.twitter.API_KEY;
 var SHORT_URL_LEN = 20;
 
 // Create Db connection
 var Db = mongo.Db;
 var server = mongo.Server;
-var dbclient = new Db('xxxx', new server('xxx',xxx,{xxx:xxx}), {
+var dbclient = new Db(APP_SETTINGS.db.name, new server(APP_SETTINGS.db.host,APP_SETTINGS.db.port,{}), {
     safe: true
 });
 
@@ -22,12 +26,7 @@ RD.channels = [
 {	
     subreddit: 'java',
     url: 'http://www.reddit.com/r/java.json',
-    twitter: {
-        consumer_key: 'xxx',
-        consumer_secret: 'xxx',
-        access_token: 'xxx',
-        access_token_secret: 'xxx'
-    }
+    twitter: APP_SETTINGS.twitter.javaaccount
 	
 }
 ];
@@ -37,7 +36,7 @@ RD.channels = [
 
 // tweet top posts
 RD.tweetTopPosts = function (topPosts) {
-    var tweetObj, tweet, t, originalLen;
+    var tweetObj, tweet, t, originalLen, toSub;
     var found = false;
 
     // get the twitter credential
@@ -76,19 +75,19 @@ RD.tweetTopPosts = function (topPosts) {
                     collection.find({
                         id:topPosts[i].id
                     }).toArray(function(err,res){
-                        if (res.length === 0) { //tweet
-			
-                            t.post('statuses/update', {
-                                status: tweet
-                            },function(e,r){
-                                if(!e) {
-                                    collection.insert({
-                                        id:topPosts[i].id
-                                    }, function(e,r){
-                                        // log error somewhere
-                                        });
-                                }
-                            });
+                        if ((typeof res !== null) || res.length === 0) { //tweet
+                              console.log("Tweeted");
+//                            t.post('statuses/update', {
+//                                status: tweet
+//                            },function(e,r){
+//                                if(!e) {
+//                                    collection.insert({
+//                                        id:topPosts[i].id
+//                                    }, function(e,r){
+//                                        // log error somewhere
+//                                        });
+//                                }
+//                            });
 			
 			
                         } else {
@@ -163,9 +162,9 @@ RD.fetch = function(channels) {
 
 };
 
-// Start the application and check for new tweets every 30 minutes
+
 setInterval(function(){
 dbclient.close();
 RD.fetch(RD.channels);    
-}, 1800000);
+}, 10000);
 
