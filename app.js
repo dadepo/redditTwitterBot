@@ -163,7 +163,7 @@ RD.fetch = function(channels) {
 
 };
 
-
+// Start the application and check for new tweets every 30 minutes
 setInterval(function(){
 dbclient.close();
 RD.fetch(RD.channels);    
