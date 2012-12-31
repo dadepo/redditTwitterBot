@@ -75,7 +75,7 @@ RD.tweetTopPosts = function (topPosts) {
                     collection.find({
                         id:topPosts[i].id
                     }).toArray(function(err,res){
-                        if ((typeof res !== null) || res.length === 0) { //tweet
+                        if ((typeof res !== null) && res.length === 0) { //tweet
                             t.post('statuses/update', {
                                 status: tweet
                             },function(e,r){
