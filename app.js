@@ -1,6 +1,5 @@
 // get needed node modules
-
-// app_settings is not a public module. Its a simple file that holds the necessary credentials for twitter and db
+// app_settings is a private module. Its a simple file that holds the necessary credentials for twitter and db
 var APP_SETTINGS = require('app_settings');
 
 var request = require('request');
@@ -69,13 +68,17 @@ RD.tweetTopPosts = function (topPosts) {
                     tweet = topPosts[i].title + ' ' + topPosts[i].url;
                 }
 	
-	
+		//see if you have space to add #java hashtag
+		if ((tweet.length - 140) >= 6) {
+			tweet += ' #java';
+		}
+		
                 dbclient.collection('tweeted', function(e,collection){
 		
                     collection.find({
                         id:topPosts[i].id
                     }).toArray(function(err,res){
-                        if ((typeof res !== null) && res.length === 0) { //tweet
+                        if (res.length === 0) { //tweet
                             t.post('statuses/update', {
                                 status: tweet
                             },function(e,r){
@@ -124,7 +127,7 @@ RD.getTopPosts = function(posts) {
     topPosts = [];
 
     for (i; i < iLen; i++) {
-        if ((posts[i].data.num_comments + posts[i].data.score) >= 10) {
+        if ((posts[i].data.num_comments >= 2) && (posts[i].data.score >= 5 )) {
             // save ID
             // save title
             // save URL ie url to external article
