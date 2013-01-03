@@ -69,7 +69,7 @@ RD.tweetTopPosts = function (topPosts) {
                 }
 	
 		//see if you have space to add #java hashtag
-		if ((tweet.length - 140) >= 6) {
+		if ((140 - tweet.length) >= 6) {
 			tweet += ' #java';
 		}
 		
@@ -164,7 +164,7 @@ RD.fetch = function(channels) {
 
 };
 
-
+// Start and fetch every 30minutes
 setInterval(function(){
 dbclient.close();
 RD.fetch(RD.channels);    
