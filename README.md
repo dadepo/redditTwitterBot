@@ -1,4 +1,4 @@
 redditjava
 ==========
 
-A twitter bot for java subreddit
+A twitter bot for java subreddit and other (programming) interesting subreddit
