@@ -76,12 +76,7 @@ RD.tweetTopPosts = function (topPosts) {
                     collection.find({
                         id:topPosts[i].id
                     }).toArray(function(err,res){
-                        if (res.length === 0) { //tweet
-						
-                            if (topPosts[i].subreddit === 'java') {
-                                return;
-                            }
-						
+                        if (res.length === 0) { //tweet						
                             t = new twit(tweetObj[topPosts[i].subreddit]);
                             t.post('statuses/update', {
                                 status: tweet
