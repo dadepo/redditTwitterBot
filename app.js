@@ -72,6 +72,12 @@ RD.tweetTopPosts = function (topPosts) {
                     tweet += ' #java';
                 }
 				
+				//see if you have space to add #reddit hashtag
+				if ((140 - tweet.length && topPosts[i].subreddit === 'programming') >= 8) {
+                    tweet += ' #reddit';
+                }
+				
+				
                 dbclient.collection('tweeted', function(e,collection){
                     collection.find({
                         id:topPosts[i].id
