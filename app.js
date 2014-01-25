@@ -26,13 +26,13 @@ RD.channels = [
     subreddit: 'java',
     url: 'http://www.reddit.com/r/java.json',
     twitter: APP_SETTINGS.twitter.javaaccount
-	
+
 },
 {	
     subreddit: 'programming',
     url: 'http://www.reddit.com/r/programming.json',
     twitter: APP_SETTINGS.twitter.programmingaccount
-	
+
 }
 ];
 
@@ -52,12 +52,12 @@ RD.tweetTopPosts = function (topPosts) {
             }
         }
     }
-	   
+
     
     dbclient.open(function(e,r){
         function inserter(i) {
             var originalLen, tweet, toRemove;
-	
+
             if (i < topPosts.length) {
                 originalLen = topPosts[i].title.length + SHORT_URL_LEN;
                 if (originalLen >= 140) {
@@ -66,18 +66,18 @@ RD.tweetTopPosts = function (topPosts) {
                 } else {
                     tweet = topPosts[i].title + ' ' + topPosts[i].url;
                 }
-	
+
                 //see if you have space to add #java hashtag
-                if ((140 - tweet.length && topPosts[i].subreddit === 'java') >= 6) {
+                if ((topPosts[i].subreddit === 'java') && (140 - tweet.length >= 6)) {
                     tweet += ' #java';
                 }
-				
+
 				//see if you have space to add #reddit hashtag
-				if ((140 - tweet.length && topPosts[i].subreddit === 'programming') >= 8) {
+				if ((topPosts[i].subreddit === 'programming') && (140 - tweet.length >= 8)) {
                     tweet += ' #reddit';
                 }
-				
-				
+
+
                 dbclient.collection('tweeted', function(e,collection){
                     collection.find({
                         id:topPosts[i].id
@@ -92,25 +92,25 @@ RD.tweetTopPosts = function (topPosts) {
                                         id:topPosts[i].id
                                     }, function(e,r){
                                         //log error somewhere
-                                        });
+                                    });
                                 }
                             });
-			
-			
+
+
                         } else {
                             console.log("Already tweeted. Logged on " + new Date().toString());
                         }
-		
+
                     });
-		
+
                     inserter(i + 1);
-		
+
                 });
 
-            } 
+} 
 
 
-        }
+}
 
 
         // dbclient.collection('tweeted', function(e,collection){
@@ -119,9 +119,9 @@ RD.tweetTopPosts = function (topPosts) {
         // });
 
 
-        inserter(0);
+inserter(0);
     //dbclient.close();
-    });
+});
 };
 
 
@@ -132,9 +132,9 @@ RD.getTopPosts = function(posts) {
     topPosts = [];
 
     for (i; i < iLen; i++) {
-	
+
         if (posts[i].data.subreddit === 'java') {
-		
+
             if ((posts[i].data.num_comments >= 2) && (posts[i].data.score >= 5 )) {
                 // save ID
                 // save title
@@ -150,7 +150,7 @@ RD.getTopPosts = function(posts) {
                 });
             }
         }
-		
+
         if (posts[i].data.subreddit === 'programming') {
             if (posts[i].data.score >= 20 ) {
                 // save ID
@@ -166,10 +166,10 @@ RD.getTopPosts = function(posts) {
                     permalink : posts[i].data.permalink
                 });
             }
-		
+
         }
 
-	
+
     }
     return topPosts;
 };
@@ -180,7 +180,7 @@ RD.getTopPosts = function(posts) {
 RD.fetch = function(channels) {
     var topPosts;
     for (i = 0, len = RD.channels.length; i < len; i++ ) {
-		
+
         (function(i) {
             request(RD.channels[i].url, function(err,head,body){
                 var response;
@@ -189,13 +189,13 @@ RD.fetch = function(channels) {
                 topPosts = RD.getTopPosts(response.data.children);
                 dbclient.close(); //work around until i get to find out why the multiple db open error occurs
                 RD.tweetTopPosts(topPosts);
-	
+
             });
 
         })(i);
 
-		
-		
+
+
     }
 
 };
