@@ -9,7 +9,7 @@ var mongo = require('mongodb');
 
 // set constants
 var API_KEY = APP_SETTINGS.twitter.API_KEY;
-var SHORT_URL_LEN = 20;
+var SHORT_URL_LEN = 23;
 
 // Create Db connection
 var Db = mongo.Db;
@@ -22,18 +22,18 @@ var dbclient = new Db(APP_SETTINGS.db.name, new server(APP_SETTINGS.db.host,APP_
 var RD = {};
 
 RD.channels = [
-{	
-    subreddit: 'java',
-    url: 'http://www.reddit.com/r/java.json',
-    twitter: APP_SETTINGS.twitter.javaaccount
+    {
+        subreddit: 'java',
+        url: 'http://www.reddit.com/r/java.json',
+        twitter: APP_SETTINGS.twitter.javaaccount
 
-},
-{	
-    subreddit: 'programming',
-    url: 'http://www.reddit.com/r/programming.json',
-    twitter: APP_SETTINGS.twitter.programmingaccount
+    },
+    {
+        subreddit: 'programming',
+        url: 'http://www.reddit.com/r/programming.json',
+        twitter: APP_SETTINGS.twitter.programmingaccount
 
-}
+    }
 ];
 
 
@@ -53,36 +53,44 @@ RD.tweetTopPosts = function (topPosts) {
         }
     }
 
-    
     dbclient.open(function(e,r){
         function inserter(i) {
             var originalLen, tweet, toRemove;
-
+            var spaceForUrl = 0;
             if (i < topPosts.length) {
-                originalLen = topPosts[i].title.length + SHORT_URL_LEN;
-                if (originalLen >= 140) {
-                    toRemove = originalLen - 140;
-                    tweet = topPosts[i].title.substr(0,(topPosts[i].title.length - toRemove)) + ' ' + topPosts[i].url;	
+
+                if (topPosts[i].url !== '') {
+                    spaceForUrl += SHORT_URL_LEN;
+                }
+
+                if (topPosts[i].permalink !== '') {
+                    spaceForUrl += SHORT_URL_LEN;
+                }
+
+                // 36 is used as two spaces and two '(' takes up 4 characters
+                originalLen = topPosts[i].title.length + spaceForUrl;
+                if (originalLen >= 136) {
+                    toRemove = originalLen - 136;
+                    tweet = topPosts[i].title.substr(0,(topPosts[i].title.length - toRemove)) + ' ' + topPosts[i].url  + ' (http://www.reddit.com' + topPosts[i].permalink + ')';
                 } else {
-                    tweet = topPosts[i].title + ' ' + topPosts[i].url;
+                    tweet = topPosts[i].title + ' ' + topPosts[i].url  + ' (http://www.reddit.com' + topPosts[i].permalink + ')';
                 }
 
                 //see if you have space to add #java hashtag
-                if ((topPosts[i].subreddit === 'java') && (140 - tweet.length >= 6)) {
+                if ((140 - tweet.length >= 6) && (topPosts[i].subreddit === 'java')) {
                     tweet += ' #java';
                 }
 
-				//see if you have space to add #reddit hashtag
-				if ((topPosts[i].subreddit === 'programming') && (140 - tweet.length >= 8)) {
-                    tweet += ' #reddit';
+                //see if you have space to add #reddit hashtag
+                if ((140 - tweet.length >= 13) && (topPosts[i].subreddit === 'programming')) {
+                    tweet += ' #programming';
                 }
-
 
                 dbclient.collection('tweeted', function(e,collection){
                     collection.find({
                         id:topPosts[i].id
                     }).toArray(function(err,res){
-                        if (res.length === 0) { //tweet						
+                        if (res.length === 0) { //tweet
                             t = new twit(tweetObj[topPosts[i].subreddit]);
                             t.post('statuses/update', {
                                 status: tweet
@@ -96,7 +104,6 @@ RD.tweetTopPosts = function (topPosts) {
                                 }
                             });
 
-
                         } else {
                             console.log("Already tweeted. Logged on " + new Date().toString());
                         }
@@ -104,24 +111,12 @@ RD.tweetTopPosts = function (topPosts) {
                     });
 
                     inserter(i + 1);
-
                 });
+            }
+        }
 
-} 
-
-
-}
-
-
-        // dbclient.collection('tweeted', function(e,collection){
-        // collection.remove(function(e,r){
-        // });
-        // });
-
-
-inserter(0);
-    //dbclient.close();
-});
+        inserter(0);
+    });
 };
 
 
@@ -189,7 +184,6 @@ RD.fetch = function(channels) {
                 topPosts = RD.getTopPosts(response.data.children);
                 dbclient.close(); //work around until i get to find out why the multiple db open error occurs
                 RD.tweetTopPosts(topPosts);
-
             });
 
         })(i);
@@ -202,5 +196,5 @@ RD.fetch = function(channels) {
 
 // Start and fetch every 30minutes
 setInterval(function(){
-    RD.fetch(RD.channels);    
+    RD.fetch(RD.channels);
 }, 180000);
